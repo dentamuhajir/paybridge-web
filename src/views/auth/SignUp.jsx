@@ -4,7 +4,7 @@ import Checkbox from "components/checkbox";
 import { useState } from "react";
 
 export default function SignUp() {
-  const [form, setForm] = useState({
+ const [form, setForm] = useState({
     fullName: "",
     email: "",
     phoneNumber: "",
@@ -12,16 +12,14 @@ export default function SignUp() {
   });
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
+    setForm((prev) => ({
+      ...prev,
       [e.target.id]: e.target.value,
-    });
+    }));
   };
 
   const handleSubmit = () => {
-    console.log("Register form:", form);
-    // later:
-    // await api.post("/users/register", form)
+    console.log("Register Form Data:", form);
   };
 
   return (
@@ -35,7 +33,7 @@ export default function SignUp() {
           Register to start using Paybridge Wallet
         </p>
 
-        {/* Google signup (optional) */}
+        {/* Google signup */}
         <div className="mb-6 flex h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-lightPrimary hover:cursor-pointer dark:bg-navy-800">
           <div className="rounded-full text-xl">
             <FcGoogle />
@@ -99,6 +97,7 @@ export default function SignUp() {
           onChange={handleChange}
         />
 
+        {/* Submit */}
         <button
           onClick={handleSubmit}
           className="linear mt-4 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300"

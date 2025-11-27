@@ -2,8 +2,19 @@
 import React from "react";
 
 function InputField(props) {
-  const { label, id, extra, type, placeholder, variant, state, disabled } =
-    props;
+  const {
+    label,
+    id,
+    extra,
+    type,
+    placeholder,
+    variant,
+    state,
+    disabled,
+    // ADDED: value and onChange are necessary for controlled components
+    value, 
+    onChange 
+  } = props;
 
   return (
     <div className={`${extra}`}>
@@ -20,6 +31,10 @@ function InputField(props) {
         type={type}
         id={id}
         placeholder={placeholder}
+        // ADDED: Pass the value prop to make the input controlled
+        value={value} 
+        // ADDED: Pass the onChange prop so the parent component can handle updates
+        onChange={onChange} 
         className={`mt-2 flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none ${
           disabled === true
             ? "!border-none !bg-gray-100 dark:!bg-white/5 dark:placeholder:!text-[rgba(255,255,255,0.15)]"
