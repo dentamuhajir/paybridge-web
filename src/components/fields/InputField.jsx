@@ -1,21 +1,7 @@
 // Custom components
 import React from "react";
 
-function InputField(props) {
-  const {
-    label,
-    id,
-    extra,
-    type,
-    placeholder,
-    variant,
-    state,
-    disabled,
-    // ADDED: value and onChange are necessary for controlled components
-    value, 
-    onChange 
-  } = props;
-
+function InputField({ label, id, extra, variant, state, disabled, ...props }) {
   return (
     <div className={`${extra}`}>
       <label
@@ -26,27 +12,24 @@ function InputField(props) {
       >
         {label}
       </label>
+
       <input
-        disabled={disabled}
-        type={type}
         id={id}
-        placeholder={placeholder}
-        // ADDED: Pass the value prop to make the input controlled
-        value={value} 
-        // ADDED: Pass the onChange prop so the parent component can handle updates
-        onChange={onChange} 
+        disabled={disabled}
+        {...props}     // <-- CRITICAL: this carries register("fullName") props
         className={`mt-2 flex h-12 w-full items-center justify-center rounded-xl border bg-white/0 p-3 text-sm outline-none ${
-          disabled === true
-            ? "!border-none !bg-gray-100 dark:!bg-white/5 dark:placeholder:!text-[rgba(255,255,255,0.15)]"
+          disabled
+            ? "!border-none !bg-gray-100 dark:!bg-white/5"
             : state === "error"
-            ? "border-red-500 text-red-500 placeholder:text-red-500 dark:!border-red-400 dark:!text-red-400 dark:placeholder:!text-red-400"
+            ? "border-red-500 text-red-500"
             : state === "success"
-            ? "border-green-500 text-green-500 placeholder:text-green-500 dark:!border-green-400 dark:!text-green-400 dark:placeholder:!text-green-400"
+            ? "border-green-500 text-green-500"
             : "border-gray-200 dark:!border-white/10 dark:text-white"
         }`}
       />
     </div>
   );
 }
+
 
 export default InputField;

@@ -1,25 +1,21 @@
 import InputField from "components/fields/InputField";
 import { FcGoogle } from "react-icons/fc";
-import Checkbox from "components/checkbox";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerSchema } from "../../validation/registerSchema";
 
 export default function SignUp() {
- const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    phoneNumber: "",
-    password: "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+    mode: "onChange",
   });
 
-  const handleChange = (e) => {
-    setForm((prev) => ({
-      ...prev,
-      [e.target.id]: e.target.value,
-    }));
-  };
-
-  const handleSubmit = () => {
-    console.log("Register Form Data:", form);
+  const onSubmit = (data) => {
+    console.log("VALID FORM:", data);
   };
 
   return (
@@ -51,55 +47,56 @@ export default function SignUp() {
 
         {/* Full Name */}
         <InputField
-          variant="auth"
-          extra="mb-3"
           label="Full Name*"
-          placeholder="John Doe"
           id="fullName"
           type="text"
-          value={form.fullName}
-          onChange={handleChange}
+          placeholder="John Doe"
+          {...register("fullName")}
         />
+        {errors.fullName && (
+          <p className="text-red-500 text-sm">{errors.fullName.message}</p>
+        )}
 
-        {/* Email */}
+         {/* Email */}
         <InputField
-          variant="auth"
-          extra="mb-3"
           label="Email*"
-          placeholder="mail@paybridge.com"
           id="email"
           type="text"
-          value={form.email}
-          onChange={handleChange}
+          placeholder="mail@paybridge.com"
+          {...register("email")}
         />
+        {errors.email && (
+          <p className="text-red-500 text-sm">{errors.email.message}</p>
+        )}
 
-        {/* Phone Number */}
+         {/* Phone Number */}
         <InputField
-          variant="auth"
-          extra="mb-3"
           label="Phone Number*"
-          placeholder="+62 812 3456 7890"
           id="phoneNumber"
           type="text"
-          value={form.phoneNumber}
-          onChange={handleChange}
+          placeholder="+62..."
+          {...register("phoneNumber")}
         />
+        {errors.phoneNumber && (
+          <p className="text-red-500 text-sm">{errors.phoneNumber.message}</p>
+        )}
 
         {/* Password */}
         <InputField
-          variant="auth"
-          extra="mb-3"
           label="Password*"
-          placeholder="Min. 8 characters"
           id="password"
           type="password"
-          value={form.password}
-          onChange={handleChange}
+          placeholder="Min 8 characters"
+          {...register("password")}
         />
+        {errors.password && (
+          <p className="text-red-500 text-sm">{errors.password.message}</p>
+        )}
+
 
         {/* Submit */}
         <button
-          onClick={handleSubmit}
+          onClick={handleSubmit(onSubmit)}
           className="linear mt-4 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300"
         >
           Create Account
