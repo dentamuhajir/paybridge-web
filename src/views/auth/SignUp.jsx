@@ -4,9 +4,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema } from "../../validation/registerSchema";
 import { registerUser } from "../../services/userService";
+import Alert from "components/alert/Alert";
+import { useState } from "react";
 
 
 export default function SignUp() {
+  const [alert, setAlert] = useState(null);
   const {
     register,
     handleSubmit,
@@ -23,25 +26,34 @@ export default function SignUp() {
     const response = await registerUser(data);
 
     console.log("REGISTER SUCCESS:", response);
-    alert("Registration successful!");
-    
-    // Optionally redirect:
-    // navigate("/auth/sign-in");
+    setAlert({
+      type: "success",
+      message: (
+        <>
+          Registration successful!{" "}
+          <a href="/auth/sign-in" className="underline font-semibold text-green-900">
+            Sign in
+          </a>
+        </>
+      ),
+    });
 
   } catch (error) {
     console.error("REGISTER FAILED:", error);
     
     if (error.response) {
-      alert(error.response.data.message || "Registration failed");
+      setAlert({
+        type: "error",
+        message: error.response.data.message || "Registration failed",
+      });
     } else {
-      alert("Network error");
+      setAlert({
+        type: "error",
+        message: "Network error",
+      });
     }
   }
 };
-
-//   const onSubmit = async(data) => {
-//     console.log("VALID FORM:", data);
-//   };
 
   return (
     <div className="mt-1 mb-1 flex h-full w-full items-center justify-center px-2 md:mx-0 md:px-0 lg:mb-10 lg:items-center lg:justify-start">
@@ -69,6 +81,7 @@ export default function SignUp() {
           <p className="text-base text-gray-600 dark:text-white"> or </p>
           <div className="h-px w-full bg-gray-200 dark:bg-navy-700" />
         </div>
+        {alert && <Alert type={alert.type}>{alert.message}</Alert>}
 
         {/* Full Name */}
         <InputField
