@@ -6,6 +6,7 @@ import { registerSchema } from "../../validation/registerSchema";
 import { registerUser } from "../../services/userService";
 import Alert from "components/alert/Alert";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 
 export default function SignUp() {
@@ -31,9 +32,9 @@ export default function SignUp() {
       message: (
         <>
           Registration successful!{" "}
-          <a href="/auth/sign-in" className="underline font-semibold text-green-900">
+          <Link to="/auth/sign-in" className="underline font-semibold text-green-900">
             Sign in
-          </a>
+          </Link>
         </>
       ),
     });
@@ -144,12 +145,10 @@ export default function SignUp() {
           <span className=" text-sm font-medium text-navy-700 dark:text-gray-600">
             Already have an account?
           </span>
-          <a
-            href="/auth/sign-in"
-            className="ml-1 text-sm font-medium text-brand-500 hover:text-brand-600 dark:text-white"
-          >
+          <Link 
+          to="/auth/sign-in" className="ml-1 text-sm font-medium text-brand-500 hover:text-brand-600 dark:text-white">
             Sign In
-          </a>
+          </Link>
         </div>
       </div>
     </div>
