@@ -1,6 +1,3 @@
-# =========================
-# React App Dockerfile
-# =========================
 FROM node:20-alpine
 
 # Set working directory inside the container

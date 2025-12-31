@@ -3,7 +3,7 @@ version: "3.9"
 services:
   fintech-platform-web:
     build: .
-    container_name: fintech-platform-web
+    container_name: paybrodge-web
     ports:
       - "3000:3000"
     environment:
