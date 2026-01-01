@@ -2,8 +2,61 @@ import InputField from "components/fields/InputField";
 import { FcGoogle } from "react-icons/fc";
 import Checkbox from "components/checkbox";
 import { Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema } from "validation/loginSchema";
+import { loginUser } from "services/userService";
+import { useState } from "react";
 
 export default function SignIn() {
+  const [alert, setAlert] = useState(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    mode: "onChange",
+  });
+
+
+  const onSubmit = async (data) => {
+    try {
+      console.log("Submitting:", data);
+
+      const response = await loginUser(data);
+
+      console.log("REGISTER SUCCESS:", response);
+      setAlert({
+        type: "success",
+        message: (
+          <>
+            Registration successful!{" "}
+            <Link to="/auth/sign-in" className="underline font-semibold text-green-900">
+              Sign in
+            </Link>
+          </>
+        ),
+      });
+
+    } catch (error) {
+      console.error("REGISTER FAILED:", error);
+
+      if (error.response) {
+        setAlert({
+          type: "error",
+          message: error.response.data.message || "Registration failed",
+        });
+      } else {
+        setAlert({
+          type: "error",
+          message: "Network error",
+        });
+      }
+    }
+  };
+
   return (
     <div className="mt-16 mb-16 flex h-full w-full items-center justify-center px-2 md:mx-0 md:px-0 lg:mb-10 lg:items-center lg:justify-start">
       {/* Sign in section */}
@@ -35,8 +88,11 @@ export default function SignIn() {
           placeholder="mail@simmmple.com"
           id="email"
           type="text"
+          {...register("email")}
         />
-
+        {errors.email && (
+          <p className="text-red-500 text-sm">{errors.email.message}</p>
+        )}
         {/* Password */}
         <InputField
           variant="auth"
@@ -45,7 +101,11 @@ export default function SignIn() {
           placeholder="Min. 8 characters"
           id="password"
           type="password"
+          {...register("password")}
         />
+        {errors.password && (
+          <p className="text-red-500 text-sm">{errors.password.message}</p>
+        )}
         {/* Checkbox */}
         <div className="mb-4 flex items-center justify-between px-2">
           <div className="flex items-center">
@@ -61,7 +121,7 @@ export default function SignIn() {
             Forgot Password?
           </a>
         </div>
-        <button className="linear mt-2 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200">
+        <button onClick={handleSubmit(onSubmit)} className="linear mt-2 w-full rounded-xl bg-brand-500 py-[12px] text-base font-medium text-white transition duration-200 hover:bg-brand-600 active:bg-brand-700 dark:bg-brand-400 dark:text-white dark:hover:bg-brand-300 dark:active:bg-brand-200">
           Sign In
         </button>
         <div className="mt-4">
