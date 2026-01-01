@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "validation/loginSchema";
 import { loginUser } from "services/userService";
 import { useState } from "react";
+import Alert from "components/alert/Alert";
 
 export default function SignIn() {
   const [alert, setAlert] = useState(null);
@@ -27,26 +28,26 @@ export default function SignIn() {
 
       const response = await loginUser(data);
 
-      console.log("REGISTER SUCCESS:", response);
-      setAlert({
-        type: "success",
-        message: (
-          <>
-            Registration successful!{" "}
-            <Link to="/auth/sign-in" className="underline font-semibold text-green-900">
-              Sign in
-            </Link>
-          </>
-        ),
-      });
+      console.log("Login SUCCESS:", response);
+      // setAlert({
+      //   type: "success",
+      //   message: (
+      //     <>
+      //       Registration successful!{" "}
+      //       <Link to="/auth/sign-in" className="underline font-semibold text-green-900">
+      //         Sign in
+      //       </Link>
+      //     </>
+      //   ),
+      // });
 
     } catch (error) {
-      console.error("REGISTER FAILED:", error);
+      console.error("LOGIN FAILED:", error);
 
       if (error.response) {
         setAlert({
           type: "error",
-          message: error.response.data.message || "Registration failed",
+          message: error.response.data.message || "Login failed",
         });
       } else {
         setAlert({
@@ -80,6 +81,8 @@ export default function SignIn() {
           <p className="text-base text-gray-600 dark:text-white"> or </p>
           <div className="h-px w-full bg-gray-200 dark:bg-navy-700" />
         </div>
+        {alert && <Alert type={alert.type}>{alert.message}</Alert>}
+
         {/* Email */}
         <InputField
           variant="auth"
