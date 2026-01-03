@@ -1,7 +1,7 @@
 import InputField from "components/fields/InputField";
 import { FcGoogle } from "react-icons/fc";
 import Checkbox from "components/checkbox";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "validation/loginSchema";
@@ -11,6 +11,8 @@ import Alert from "components/alert/Alert";
 
 export default function SignIn() {
   const [alert, setAlert] = useState(null);
+
+  const navigate = useNavigate()
 
   const {
     register,
@@ -29,17 +31,15 @@ export default function SignIn() {
       const response = await loginUser(data);
 
       console.log("Login SUCCESS:", response);
-      // setAlert({
-      //   type: "success",
-      //   message: (
-      //     <>
-      //       Registration successful!{" "}
-      //       <Link to="/auth/sign-in" className="underline font-semibold text-green-900">
-      //         Sign in
-      //       </Link>
-      //     </>
-      //   ),
-      // });
+
+      const token = response.data.token;
+
+      console.log(token)
+
+      localStorage.setItem("access_token", token);
+
+      navigate("/admin", { replace: true });
+ 
 
     } catch (error) {
       console.error("LOGIN FAILED:", error);
