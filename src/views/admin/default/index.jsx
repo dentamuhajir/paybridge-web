@@ -15,8 +15,32 @@ import DailyTraffic from "views/admin/default/components/DailyTraffic";
 import TaskCard from "views/admin/default/components/TaskCard";
 import tableDataCheck from "./variables/tableDataCheck.json";
 import tableDataComplex from "./variables/tableDataComplex.json";
+import { useEffect, useState } from "react";
+import { getBalance } from "services/walletService";
+
 
 const Dashboard = () => {
+  const [wallet, setWallet] = useState({
+    balance: 0,
+    currency: "",
+  });
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const res = await getBalance();
+        setWallet({
+          balance: res.data.balance,
+          currency: res.data.currency,
+        });
+      } catch (error) {
+        console.error("Failed to fetch balance", error);
+      }
+    };
+
+    fetchBalance();
+  }, []);
+
   return (
     <div>
       {/* Card widget */}
@@ -25,7 +49,7 @@ const Dashboard = () => {
         <Widget
           icon={<MdBarChart className="h-7 w-7" />}
           title={"Earnings"}
-          subtitle={"$340.5"}
+          subtitle={"$350.5"}
         />
         <Widget
           icon={<IoDocuments className="h-6 w-6" />}
@@ -40,7 +64,7 @@ const Dashboard = () => {
         <Widget
           icon={<MdDashboard className="h-6 w-6" />}
           title={"Your Balance"}
-          subtitle={"$1,000"}
+          subtitle={`${wallet.currency} ${wallet.balance.toLocaleString()}`}
         />
         <Widget
           icon={<MdBarChart className="h-7 w-7" />}
