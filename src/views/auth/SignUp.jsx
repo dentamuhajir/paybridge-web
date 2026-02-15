@@ -3,7 +3,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerSchema } from "../../validation/registerSchema";
-import { registerUser } from "../../services/userService";
+import { registerUser } from "../../services/authService";
 import Alert from "components/alert/Alert";
 import { useState } from "react";
 import { Link } from "react-router-dom";

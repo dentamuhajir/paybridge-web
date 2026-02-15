@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "validation/loginSchema";
-import { loginUser } from "services/userService";
+import { loginUser } from "services/authService";
 import { useState } from "react";
 import Alert from "components/alert/Alert";
 
