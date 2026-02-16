@@ -1,19 +1,44 @@
-FROM node:20-alpine
+# =========================
+# Stage 1 — Dependencies
+# =========================
+FROM node:20-alpine AS deps
 
-# Set working directory inside the container
 WORKDIR /app
-
-# Copy only package files first for caching
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
 
-# Copy all source code
+# =========================
+# Stage 2 — Development
+# =========================
+FROM node:20-alpine AS dev
+
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Expose the default React port
 EXPOSE 3000
-
-# Start the app
 CMD ["npm", "start"]
+
+
+# =========================
+# Stage 3 — Build
+# =========================
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
+
+
+# =========================
+# Stage 4 — Production Runtime
+# =========================
+FROM nginx:stable-alpine AS prod
+
+RUN rm -rf /usr/share/nginx/html/*
+COPY --from=builder /app/build /usr/share/nginx/html
+
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
