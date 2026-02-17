@@ -2,6 +2,7 @@ version: "3.9"
 
 services:
   paybridge-web:
+    image: dentamuhajir/paybridge-web:1.0.0
     build:
       context: .
       target: prod
