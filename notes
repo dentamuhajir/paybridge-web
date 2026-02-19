@@ -1,0 +1,24 @@
+# 1️⃣ Build new production image (version 1.0.1)
+# This creates a new Docker image from the prod stage in Dockerfile
+docker build -t dentamuhajir/paybridge-web:1.0.1 --target prod .
+
+
+# 2️⃣ Load the image into Kind cluster
+# Because Kind cannot pull from Docker Hub (DNS/proxy issue),
+# we manually load the local Docker image into the cluster node
+kind load docker-image dentamuhajir/paybridge-web:1.0.1 --name paybridge-cluster
+
+
+# 3️⃣ Update Kubernetes deployment to use the new image
+# This triggers a rolling update (no downtime)
+kubectl set image deployment/paybridge-web web=dentamuhajir/paybridge-web:1.0.1
+
+
+# 4️⃣ Watch the rolling update process
+# Old pod will terminate, new pod will be created
+kubectl get pods -w
+
+
+# 5️⃣ Access the application locally
+# Forward local port 3001 to service port 80 inside cluster
+kubectl port-forward service/paybridge-web 3001:80
