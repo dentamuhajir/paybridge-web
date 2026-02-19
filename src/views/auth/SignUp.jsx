@@ -64,7 +64,7 @@ export default function SignUp() {
           Create Account
         </h4>
         <p className="mb-9 ml-1 text-base text-gray-600">
-          Register to start using Paybridge Wallet
+          Register to start using Paybridge Apps
         </p>
 
         {/* Google signup */}
