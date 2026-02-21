@@ -62,30 +62,31 @@ const Marketplace = () => {
           </ul>
         </div>
 
-        {/* NFTs trending card */}
+        {/* Product Loan Cards */}
         <div className="z-20 grid grid-cols-1 gap-5 md:grid-cols-3">
           <NftCard
             bidders={[avatar1, avatar2, avatar3]}
-            title="Abstract Colors"
-            author="Esthera Jackson"
-            price="0.91"
+            title="Electronics Financing"
+            author="Up to 24 Months Tenor"
+            price="Starting from 1.2% / month"
             image={NFt3}
           />
           <NftCard
             bidders={[avatar1, avatar2, avatar3]}
-            title="ETH AI Brain"
-            author="Nick Wilson"
-            price="0.7"
+            title="Motorcycle Loan"
+            author="Flexible Down Payment"
+            price="Interest from 0.9% / month"
             image={NFt2}
           />
           <NftCard
             bidders={[avatar1, avatar2, avatar3]}
-            title="Mesh Gradients"
-            author="Will Smith"
-            price="2.91"
+            title="Home Appliance Installment"
+            author="Quick Approval Process"
+            price="Up to Rp 25,000,000 Limit"
             image={NFt4}
           />
         </div>
+
 
         {/* Recenlty Added setion */}
         <div className="mb-5 mt-5 flex items-center justify-between px-[26px]">

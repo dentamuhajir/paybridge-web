@@ -38,7 +38,7 @@ export default function SignIn() {
 
       localStorage.setItem("access_token", token);
 
-      navigate("/admin", { replace: true });
+      navigate("/admin/dashboard", { replace: true });
  
 
     } catch (error) {
