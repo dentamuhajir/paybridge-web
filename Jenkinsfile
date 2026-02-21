@@ -1,0 +1,29 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "dentamuhajir/paybridge-web"
+        CLUSTER_NAME = "paybridge-cluster"
+    }
+
+    stages {
+
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} --target prod ."
+            }
+        }
+
+        stage('Load Image to Kind') {
+            steps {
+                sh "kind load docker-image ${IMAGE_NAME}:${BUILD_NUMBER} --name ${CLUSTER_NAME}"
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh "kubectl set image deployment/paybridge-web web=${IMAGE_NAME}:${BUILD_NUMBER}"
+            }
+        }
+    }
+}
