@@ -16,7 +16,7 @@ pipeline {
 
                     sh """
                     echo "Building image with tag: ${tag}"
-                    TAG=${tag} docker compose -f docker-compose.prod.yml up -d --build
+                    TAG=${tag} docker-compose -f docker-compose.prod.yml up -d --build
                     """
                 }
             }
