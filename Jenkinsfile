@@ -12,6 +12,7 @@ pipeline {
             steps {
                 sh "docker network create paybridge_network || true"
 
+                sh "docker rm -f paybridge-web || true"
                 sh "DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml down || true"
                 sh "DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml up -d --build"
             }
