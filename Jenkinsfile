@@ -31,7 +31,7 @@ pipeline {
         }
         failure {
             echo "Web Deployment Failed. Checking logs..."
-            sh "docker compose -f docker-compose.prod.yml logs --tail=20"
+            sh "docker compose -f docker-compose.yml logs --tail=20"
         }
     }
 }
