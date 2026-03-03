@@ -2,24 +2,36 @@ pipeline {
     agent any
 
     stages {
-
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Build & Deploy') {
+        stage('Docker Compose Deploy') {
             steps {
-                script {
-                    def tag = "${BUILD_NUMBER}-${GIT_COMMIT.take(7)}"
+                sh "docker network create paybridge_network || true"
 
-                    sh """
-                    echo "Building image with tag: ${tag}"
-                    TAG=${tag} docker-compose -f docker-compose.prod.yml up -d --build
-                    """
-                }
+                sh "DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml down || true"
+                sh "DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml up -d --build"
             }
+        }
+
+        stage('Verification') {
+            steps {
+                echo "======== Verifying Web ========"
+                sh "docker compose -f docker-compose.yml ps"
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Web Deployment Successful! Access at http://localhost:3000"
+        }
+        failure {
+            echo "Web Deployment Failed. Checking logs..."
+            sh "docker compose -f docker-compose.prod.yml logs --tail=20"
         }
     }
 }

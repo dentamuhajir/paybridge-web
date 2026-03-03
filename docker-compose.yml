@@ -1,15 +1,18 @@
 version: "3.9"
 
 services:
-  fintech-platform-web:
-    build: .
-    container_name: paybrodge-web
+  paybridge-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: prod
+    container_name: paybridge-web
     ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true # helps live reload in Docker
-    volumes:
-      - .:/app
-      - /app/node_modules
-    command: npm start
+      - "3000:80"
+    networks:
+      - paybridge_network
+    restart: unless-stopped
+
+networks:
+  paybridge_network:
+    external: true
