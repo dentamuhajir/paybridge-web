@@ -27,6 +27,10 @@ CMD ["npm", "start"]
 FROM node:20-alpine AS builder
 
 WORKDIR /app
+
+ARG REACT_APP_API_GATEWAY_URL
+ENV REACT_APP_API_GATEWAY_URL=$REACT_APP_API_GATEWAY_URL 
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

@@ -26,15 +26,21 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo "======== Building Docker Image ========"
-                sh """
-                    echo "${WEB_ENV}" > .env
+                 withCredentials([
+            string(credentialsId: 'web-env', variable: 'API_URL')
+                ]) {
+                    sh """
+                        echo "Using API_URL=$API_URL"
 
-                    DOCKER_BUILDKIT=0 docker build \
-                        --target prod \
-                        -t ${IMAGE_NAME}:${IMAGE_TAG} \
-                        -t ${IMAGE_NAME}:latest \
-                        -f Dockerfile .
-                """
+                        DOCKER_BUILDKIT=0 docker build \
+                            --no-cache \
+                            --build-arg REACT_APP_API_GATEWAY_URL=$API_URL \
+                            --target prod \
+                            -t ${IMAGE_NAME}:${IMAGE_TAG} \
+                            -t ${IMAGE_NAME}:latest \
+                            -f Dockerfile .
+                    """
+                }
             }
         }
 
