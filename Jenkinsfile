@@ -5,6 +5,7 @@ pipeline {
         DOCKER_HUB_CREDENTIALS = credentials('dockerhub-credentials')
         IMAGE_NAME = "dentamuhajir/paybridge-web"
         IMAGE_TAG = "${BUILD_NUMBER}"
+        WEB_ENV = credentials('web-env')
     }
 
     stages {
@@ -26,6 +27,8 @@ pipeline {
             steps {
                 echo "======== Building Docker Image ========"
                 sh """
+                    echo "${WEB_ENV}" > .env
+
                     DOCKER_BUILDKIT=0 docker build \
                         --target prod \
                         -t ${IMAGE_NAME}:${IMAGE_TAG} \
