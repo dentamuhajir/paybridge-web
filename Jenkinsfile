@@ -7,7 +7,6 @@ pipeline {
         IMAGE_TAG = "${BUILD_NUMBER}"
         WEB_ENV = credentials('web-env')
         GITHUB_CREDENTIALS = credentials('github-credentials')
-        MANIFEST_REPO = "https://github.com/dentamuhajir/paybridge-k8s-manifests.git"
         MANIFEST_REPO_NAME = "paybridge-k8s-manifests"
         DEPLOYMENT_FILE = "base/applications/paybridge-web/deployment.yaml"
     }
@@ -74,6 +73,10 @@ pipeline {
 
                     cd ${MANIFEST_REPO_NAME}
 
+                    # Get active branch automatically
+                    CURRENT_BRANCH=\$(git rev-parse --abbrev-ref HEAD)
+                    echo "Branch: \$CURRENT_BRANCH"
+
                     echo "=== Before update ==="
                     grep 'image:' ${DEPLOYMENT_FILE}
 
@@ -86,7 +89,7 @@ pipeline {
                     git config user.name "Jenkins CI"
                     git add ${DEPLOYMENT_FILE}
                     git commit -m "ci(auto): update paybridge-web image tag :${IMAGE_TAG} - Jenkins Build #${BUILD_NUMBER} [skip ci]"
-                    git push origin main
+                    git push origin \$CURRENT_BRANCH
 
                     echo "======== Manifest updated & pushed! ========"
                 """
@@ -96,22 +99,20 @@ pipeline {
 
     post {
         success {
-            echo "CI Successful!"
-            echo "Image pushed   : ${IMAGE_NAME}:${IMAGE_TAG}"
-            echo "Manifest repo  : updated to tag :${IMAGE_TAG}"
-            echo "DockerHub      : https://hub.docker.com/r/dentamuhajir/paybridge-web"
-            echo ""
-            echo "Untuk deploy manual ke KinD:"
-            echo "  git pull && kubectl apply -f base/applications/paybridge-web/deployment.yaml"
+            echo "======== CI Successful! ========"
+            echo "Image pushed  : dentamuhajir/paybridge-web:${BUILD_NUMBER}"
+            echo "Manifest repo : updated to tag :${BUILD_NUMBER}"
+            echo "DockerHub     : https://hub.docker.com/r/dentamuhajir/paybridge-web"
+            echo "Deploy manual : git pull && kubectl apply -f base/applications/paybridge-web/deployment.yaml"
         }
         failure {
-            echo "CI Failed! Check build logs above."
+            echo "======== CI Failed! Check build logs above. ========"
         }
         always {
-            sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
-            sh "docker rmi ${IMAGE_NAME}:latest || true"
+            sh "docker rmi dentamuhajir/paybridge-web:${BUILD_NUMBER} || true"
+            sh "docker rmi dentamuhajir/paybridge-web:latest || true"
             sh "docker logout || true"
-            sh "rm -rf ${MANIFEST_REPO_NAME} || true"
+            sh "rm -rf paybridge-k8s-manifests || true"
         }
     }
 }
