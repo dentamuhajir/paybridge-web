@@ -1,38 +1,117 @@
-pipeline {
+pipeline { 
     agent any
 
+    environment {
+        DOCKER_HUB_CREDENTIALS = credentials('dockerhub-credentials')
+        IMAGE_NAME = "dentamuhajir/paybridge-web"
+        IMAGE_TAG = "${BUILD_NUMBER}"
+        WEB_ENV = credentials('web-env')
+        GITHUB_CREDENTIALS = credentials('github-credentials')
+        MANIFEST_REPO = "https://github.com/dentamuhajir/paybridge-k8s-manifests.git"
+        MANIFEST_REPO_NAME = "paybridge-k8s-manifests"
+        DEPLOYMENT_FILE = "base/applications/paybridge-web/deployment.yaml"
+    }
+
     stages {
+
+        // ================================
+        // STAGE 1: Checkout Source Code
+        // ================================
         stage('Checkout') {
             steps {
+                echo "======== Checking out source code ========"
                 checkout scm
             }
         }
 
-        stage('Docker Compose Deploy') {
+        // ================================
+        // STAGE 2: Build Docker Image
+        // ================================
+        stage('Build Docker Image') {
             steps {
-                sh "docker network create paybridge_network || true"
+                echo "======== Building Docker Image ========"
+                withCredentials([
+                    string(credentialsId: 'web-env', variable: 'API_URL')
+                ]) {
+                    sh """
+                        echo "Using API_URL=$API_URL"
 
-                sh "docker rm -f paybridge-web || true"
-                sh "DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml down || true"
-                sh "DOCKER_BUILDKIT=0 docker compose -f docker-compose.yml up -d --build"
+                        DOCKER_BUILDKIT=0 docker build \
+                            --no-cache \
+                            --build-arg REACT_APP_API_GATEWAY_URL=$API_URL \
+                            --target prod \
+                            -t ${IMAGE_NAME}:${IMAGE_TAG} \
+                            -t ${IMAGE_NAME}:latest \
+                            -f Dockerfile .
+                    """
+                }
             }
         }
 
-        stage('Verification') {
+        // ================================
+        // STAGE 3: Push to Docker Hub
+        // ================================
+        stage('Push to Docker Hub') {
             steps {
-                echo "======== Verifying Web ========"
-                sh "docker compose -f docker-compose.yml ps"
+                echo "======== Pushing Image to Docker Hub ========"
+                sh "echo ${DOCKER_HUB_CREDENTIALS_PSW} | docker login -u ${DOCKER_HUB_CREDENTIALS_USR} --password-stdin"
+                sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
+                sh "docker push ${IMAGE_NAME}:latest"
+                echo "======== Image pushed: ${IMAGE_NAME}:${IMAGE_TAG} ========"
+            }
+        }
+
+        // ================================
+        // STAGE 4: Update Manifest Repo
+        // ================================
+        stage('Update Manifest') {
+            steps {
+                echo "======== Updating manifest repo ========"
+                sh """
+                    rm -rf ${MANIFEST_REPO_NAME}
+
+                    git clone https://${GITHUB_CREDENTIALS_USR}:${GITHUB_CREDENTIALS_PSW}@github.com/dentamuhajir/paybridge-k8s-manifests.git
+
+                    cd ${MANIFEST_REPO_NAME}
+
+                    echo "=== Before update ==="
+                    grep 'image:' ${DEPLOYMENT_FILE}
+
+                    sed -i 's|image: ${IMAGE_NAME}:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g' ${DEPLOYMENT_FILE}
+
+                    echo "=== After update ==="
+                    grep 'image:' ${DEPLOYMENT_FILE}
+
+                    git config user.email "jenkins@paybridge.local"
+                    git config user.name "Jenkins CI"
+                    git add ${DEPLOYMENT_FILE}
+                    git commit -m "ci(auto): update paybridge-web image tag :${IMAGE_TAG} - Jenkins Build #${BUILD_NUMBER} [skip ci]"
+                    git push origin main
+
+                    echo "======== Manifest updated & pushed! ========"
+                """
             }
         }
     }
 
     post {
         success {
-            echo "Web Deployment Successful! Access at http://localhost:3000"
+            echo "CI Successful!"
+            echo "Image pushed   : ${IMAGE_NAME}:${IMAGE_TAG}"
+            echo "Manifest repo  : updated to tag :${IMAGE_TAG}"
+            echo "DockerHub      : https://hub.docker.com/r/dentamuhajir/paybridge-web"
+            echo ""
+            echo "Untuk deploy manual ke KinD:"
+            echo "  git pull && kubectl apply -f base/applications/paybridge-web/deployment.yaml"
         }
         failure {
-            echo "Web Deployment Failed. Checking logs..."
-            sh "docker compose -f docker-compose.yml logs --tail=20"
+            echo "CI Failed! Check build logs above."
+        }
+        always {
+            sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
+            sh "docker rmi ${IMAGE_NAME}:latest || true"
+            sh "docker logout || true"
+            sh "rm -rf ${MANIFEST_REPO_NAME} || true"
         }
     }
 }

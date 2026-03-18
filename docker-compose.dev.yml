@@ -1,16 +1,19 @@
-version: "3.9"
-
 services:
   paybridge-web:
     build:
       context: .
+      dockerfile: Dockerfile
       target: dev
     container_name: paybridge-web-dev
     ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true
+      - "3000:3000"   
     volumes:
       - .:/app
       - /app/node_modules
+    networks:
+      - paybridge_network
+    restart: unless-stopped
+
+networks:
+  paybridge_network:
+    external: true

@@ -66,7 +66,7 @@ export default function SignIn() {
           Sign In
         </h4>
         <p className="mb-9 ml-1 text-base text-gray-600">
-          Enter your email and password to sign in!
+          Enter your email and password to sign in!@ { process.env.REACT_APP_API_GATEWAY_URL}
         </p>
         <div className="mb-6 flex h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-lightPrimary hover:cursor-pointer dark:bg-navy-800">
           <div className="rounded-full text-xl">
