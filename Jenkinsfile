@@ -1,4 +1,4 @@
-pipeline {
+pipeline { 
     agent any
 
     environment {
@@ -6,6 +6,10 @@ pipeline {
         IMAGE_NAME = "dentamuhajir/paybridge-web"
         IMAGE_TAG = "${BUILD_NUMBER}"
         WEB_ENV = credentials('web-env')
+        GITHUB_CREDENTIALS = credentials('github-credentials')
+        MANIFEST_REPO = "https://github.com/dentamuhajir/paybridge-k8s-manifests.git"
+        MANIFEST_REPO_NAME = "paybridge-k8s-manifests"
+        DEPLOYMENT_FILE = "base/applications/paybridge-web/deployment.yaml"
     }
 
     stages {
@@ -26,8 +30,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo "======== Building Docker Image ========"
-                 withCredentials([
-            string(credentialsId: 'web-env', variable: 'API_URL')
+                withCredentials([
+                    string(credentialsId: 'web-env', variable: 'API_URL')
                 ]) {
                     sh """
                         echo "Using API_URL=$API_URL"
@@ -57,22 +61,57 @@ pipeline {
             }
         }
 
+        // ================================
+        // STAGE 4: Update Manifest Repo
+        // ================================
+        stage('Update Manifest') {
+            steps {
+                echo "======== Updating manifest repo ========"
+                sh """
+                    rm -rf ${MANIFEST_REPO_NAME}
+
+                    git clone https://${GITHUB_CREDENTIALS_USR}:${GITHUB_CREDENTIALS_PSW}@github.com/dentamuhajir/paybridge-k8s-manifests.git
+
+                    cd ${MANIFEST_REPO_NAME}
+
+                    echo "=== Before update ==="
+                    grep 'image:' ${DEPLOYMENT_FILE}
+
+                    sed -i 's|image: ${IMAGE_NAME}:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g' ${DEPLOYMENT_FILE}
+
+                    echo "=== After update ==="
+                    grep 'image:' ${DEPLOYMENT_FILE}
+
+                    git config user.email "jenkins@paybridge.local"
+                    git config user.name "Jenkins CI"
+                    git add ${DEPLOYMENT_FILE}
+                    git commit -m "ci(auto): update paybridge-web image tag :${IMAGE_TAG} - Jenkins Build #${BUILD_NUMBER} [skip ci]"
+                    git push origin main
+
+                    echo "======== Manifest updated & pushed! ========"
+                """
+            }
+        }
     }
 
     post {
         success {
             echo "CI Successful!"
-            echo "Image available at: https://hub.docker.com/r/dentamuhajir/paybridge-web"
-            echo "Tags pushed: ${IMAGE_NAME}:${IMAGE_TAG} and ${IMAGE_NAME}:latest"
+            echo "Image pushed   : ${IMAGE_NAME}:${IMAGE_TAG}"
+            echo "Manifest repo  : updated to tag :${IMAGE_TAG}"
+            echo "DockerHub      : https://hub.docker.com/r/dentamuhajir/paybridge-web"
+            echo ""
+            echo "Untuk deploy manual ke KinD:"
+            echo "  git pull && kubectl apply -f base/applications/paybridge-web/deployment.yaml"
         }
         failure {
             echo "CI Failed! Check build logs above."
         }
         always {
-            // Cleanup local image supaya disk Jenkins tidak penuh
             sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
             sh "docker rmi ${IMAGE_NAME}:latest || true"
             sh "docker logout || true"
+            sh "rm -rf ${MANIFEST_REPO_NAME} || true"
         }
     }
 }
