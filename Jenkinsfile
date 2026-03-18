@@ -73,6 +73,10 @@ pipeline {
 
                     cd ${MANIFEST_REPO_NAME}
 
+                    # Get active branch automatically
+                    CURRENT_BRANCH=\$(git rev-parse --abbrev-ref HEAD)
+                    echo "Branch: \$CURRENT_BRANCH"
+
                     echo "=== Before update ==="
                     grep 'image:' ${DEPLOYMENT_FILE}
 
@@ -85,7 +89,7 @@ pipeline {
                     git config user.name "Jenkins CI"
                     git add ${DEPLOYMENT_FILE}
                     git commit -m "ci(auto): update paybridge-web image tag :${IMAGE_TAG} - Jenkins Build #${BUILD_NUMBER} [skip ci]"
-                    git push origin main
+                    git push origin \$CURRENT_BRANCH
 
                     echo "======== Manifest updated & pushed! ========"
                 """
