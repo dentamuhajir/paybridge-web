@@ -7,7 +7,6 @@ pipeline {
         IMAGE_TAG = "${BUILD_NUMBER}"
         WEB_ENV = credentials('web-env')
         GITHUB_CREDENTIALS = credentials('github-credentials')
-        MANIFEST_REPO = "https://github.com/dentamuhajir/paybridge-k8s-manifests.git"
         MANIFEST_REPO_NAME = "paybridge-k8s-manifests"
         DEPLOYMENT_FILE = "base/applications/paybridge-web/deployment.yaml"
     }
@@ -96,22 +95,20 @@ pipeline {
 
     post {
         success {
-            echo "CI Successful!"
-            echo "Image pushed   : ${IMAGE_NAME}:${IMAGE_TAG}"
-            echo "Manifest repo  : updated to tag :${IMAGE_TAG}"
-            echo "DockerHub      : https://hub.docker.com/r/dentamuhajir/paybridge-web"
-            echo ""
-            echo "Untuk deploy manual ke KinD:"
-            echo "  git pull && kubectl apply -f base/applications/paybridge-web/deployment.yaml"
+            echo "======== CI Successful! ========"
+            echo "Image pushed  : dentamuhajir/paybridge-web:${BUILD_NUMBER}"
+            echo "Manifest repo : updated to tag :${BUILD_NUMBER}"
+            echo "DockerHub     : https://hub.docker.com/r/dentamuhajir/paybridge-web"
+            echo "Deploy manual : git pull && kubectl apply -f base/applications/paybridge-web/deployment.yaml"
         }
         failure {
-            echo "CI Failed! Check build logs above."
+            echo "======== CI Failed! Check build logs above. ========"
         }
         always {
-            sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
-            sh "docker rmi ${IMAGE_NAME}:latest || true"
+            sh "docker rmi dentamuhajir/paybridge-web:${BUILD_NUMBER} || true"
+            sh "docker rmi dentamuhajir/paybridge-web:latest || true"
             sh "docker logout || true"
-            sh "rm -rf ${MANIFEST_REPO_NAME} || true"
+            sh "rm -rf paybridge-k8s-manifests || true"
         }
     }
 }
