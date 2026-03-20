@@ -4,6 +4,7 @@ pipeline {
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('dockerhub-credentials')
         IMAGE_NAME = "dentamuhajir/paybridge-web"
+        // Get the 7-character short commit hash from the application source code
         IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
         WEB_ENV = credentials('web-env')
         GITHUB_CREDENTIALS = credentials('github-credentials')
@@ -12,9 +13,9 @@ pipeline {
     }
 
     stages {
-        // ================================
+        // ==========================================
         // STAGE 1: Checkout Source Code
-        // ================================
+        // ==========================================
         stage('Checkout') {
             steps {
                 echo "======== Checking out source code ========"
@@ -22,9 +23,9 @@ pipeline {
             }
         }
 
-        // ================================
+        // ==========================================
         // STAGE 2: Build Docker Image
-        // ================================
+        // ==========================================
         stage('Build Docker Image') {
             steps {
                 echo "======== Building Docker Image with Tag: ${IMAGE_TAG} ========"
@@ -45,9 +46,9 @@ pipeline {
             }
         }
 
-        // ================================
+        // ==========================================
         // STAGE 3: Push to Docker Hub
-        // ================================
+        // ==========================================
         stage('Push to Docker Hub') {
             steps {
                 echo "======== Pushing Image to Docker Hub ========"
@@ -58,30 +59,35 @@ pipeline {
             }
         }
 
-        // ================================
-        // STAGE 4: Update Manifest Repo
-        // ================================
+        // ==========================================
+        // STAGE 4: Update Manifest Repository
+        // ==========================================
         stage('Update Manifest') {
             steps {
-                echo "======== Updating manifest repo using Paybridge Bot ========"
+                echo "======== Updating manifest repository via Paybridge Bot ========"
                 sh """
                     rm -rf ${MANIFEST_REPO_NAME}
                     git clone https://${GITHUB_CREDENTIALS_USR}:${GITHUB_CREDENTIALS_PSW}@github.com/dentamuhajir/paybridge-k8s-manifests.git
                     cd ${MANIFEST_REPO_NAME}
 
-                    # Update image tag di deployment.yaml
-                    sed -i 's|image: ${IMAGE_NAME}:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g' ${DEPLOYMENT_FILE}
+                    # Detect current branch dynamically 
+                    CURRENT_BRANCH=\$(git rev-parse --abbrev-ref HEAD)
+                    echo "Current branch detected: \$CURRENT_BRANCH"
 
-                    # Identitas Commit yang lebih Pro
+                    # Update image tag in the deployment YAML
+                    sed -i "s|image: ${IMAGE_NAME}:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g" ${DEPLOYMENT_FILE}
+
+                    # Configure Paybridge Bot identity
                     git config user.email "bot@paybridge.dev"
                     git config user.name "Paybridge Bot"
                     
                     git add ${DEPLOYMENT_FILE}
                     
-                    # Format commit message sesuai standar conventional commits
                     git commit -m "ci(deploy): update paybridge-web to ${IMAGE_TAG} [build #${BUILD_NUMBER}] [skip ci]"
                     
-                    git push origin main
+                    # Push back to the detected branch
+                    git push origin \$CURRENT_BRANCH
+                    
                     echo "======== Manifest updated to ${IMAGE_TAG} and pushed! ========"
                 """
             }
@@ -95,10 +101,10 @@ pipeline {
             echo "Jenkins Build      : #${BUILD_NUMBER}"
         }
         failure {
-            echo "======== CI Failed! Check build logs above. ========"
+            echo "======== CI Failed! Check the logs above. ========"
         }
         always {
-            // Cleanup images to save disk space
+            // Cleanup local images to prevent disk space issues
             sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
             sh "docker rmi ${IMAGE_NAME}:latest || true"
             sh "docker logout || true"
