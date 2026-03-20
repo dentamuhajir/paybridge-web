@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('dockerhub-credentials')
         IMAGE_NAME = "dentamuhajir/paybridge-web"
-        IMAGE_TAG = "${BUILD_NUMBER}"
+        IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
         WEB_ENV = credentials('web-env')
         GITHUB_CREDENTIALS = credentials('github-credentials')
         MANIFEST_REPO_NAME = "paybridge-k8s-manifests"
@@ -12,7 +12,6 @@ pipeline {
     }
 
     stages {
-
         // ================================
         // STAGE 1: Checkout Source Code
         // ================================
@@ -28,14 +27,13 @@ pipeline {
         // ================================
         stage('Build Docker Image') {
             steps {
-                echo "======== Building Docker Image ========"
+                echo "======== Building Docker Image with Tag: ${IMAGE_TAG} ========"
                 withCredentials([
                     string(credentialsId: 'web-env', variable: 'API_URL')
                 ]) {
                     sh """
                         echo "Using API_URL=$API_URL"
-
-                        DOCKER_BUILDKIT=0 docker build \
+                        DOCKER_BUILDKIT=1 docker build \
                             --no-cache \
                             --build-arg REACT_APP_API_GATEWAY_URL=$API_URL \
                             --target prod \
@@ -65,33 +63,26 @@ pipeline {
         // ================================
         stage('Update Manifest') {
             steps {
-                echo "======== Updating manifest repo ========"
+                echo "======== Updating manifest repo using Paybridge Bot ========"
                 sh """
                     rm -rf ${MANIFEST_REPO_NAME}
-
                     git clone https://${GITHUB_CREDENTIALS_USR}:${GITHUB_CREDENTIALS_PSW}@github.com/dentamuhajir/paybridge-k8s-manifests.git
-
                     cd ${MANIFEST_REPO_NAME}
 
-                    # Get active branch automatically
-                    CURRENT_BRANCH=\$(git rev-parse --abbrev-ref HEAD)
-                    echo "Branch: \$CURRENT_BRANCH"
-
-                    echo "=== Before update ==="
-                    grep 'image:' ${DEPLOYMENT_FILE}
-
+                    # Update image tag di deployment.yaml
                     sed -i 's|image: ${IMAGE_NAME}:.*|image: ${IMAGE_NAME}:${IMAGE_TAG}|g' ${DEPLOYMENT_FILE}
 
-                    echo "=== After update ==="
-                    grep 'image:' ${DEPLOYMENT_FILE}
-
-                    git config user.email "jenkins@paybridge.local"
-                    git config user.name "Jenkins CI"
+                    # Identitas Commit yang lebih Pro
+                    git config user.email "bot@paybridge.dev"
+                    git config user.name "Paybridge Bot"
+                    
                     git add ${DEPLOYMENT_FILE}
-                    git commit -m "ci(auto): update paybridge-web image tag :${IMAGE_TAG} - Jenkins Build #${BUILD_NUMBER} [skip ci]"
-                    git push origin \$CURRENT_BRANCH
-
-                    echo "======== Manifest updated & pushed! ========"
+                    
+                    # Format commit message sesuai standar conventional commits
+                    git commit -m "ci(deploy): update paybridge-web to ${IMAGE_TAG} [build #${BUILD_NUMBER}] [skip ci]"
+                    
+                    git push origin main
+                    echo "======== Manifest updated to ${IMAGE_TAG} and pushed! ========"
                 """
             }
         }
@@ -100,19 +91,18 @@ pipeline {
     post {
         success {
             echo "======== CI Successful! ========"
-            echo "Image pushed  : dentamuhajir/paybridge-web:${BUILD_NUMBER}"
-            echo "Manifest repo : updated to tag :${BUILD_NUMBER}"
-            echo "DockerHub     : https://hub.docker.com/r/dentamuhajir/paybridge-web"
-            echo "Deploy manual : git pull && kubectl apply -f base/applications/paybridge-web/deployment.yaml"
+            echo "Deployment Version : ${IMAGE_TAG}"
+            echo "Jenkins Build      : #${BUILD_NUMBER}"
         }
         failure {
             echo "======== CI Failed! Check build logs above. ========"
         }
         always {
-            sh "docker rmi dentamuhajir/paybridge-web:${BUILD_NUMBER} || true"
-            sh "docker rmi dentamuhajir/paybridge-web:latest || true"
+            // Cleanup images to save disk space
+            sh "docker rmi ${IMAGE_NAME}:${IMAGE_TAG} || true"
+            sh "docker rmi ${IMAGE_NAME}:latest || true"
             sh "docker logout || true"
-            sh "rm -rf paybridge-k8s-manifests || true"
+            sh "rm -rf ${MANIFEST_REPO_NAME} || true"
         }
     }
 }
