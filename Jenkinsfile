@@ -82,8 +82,7 @@ pipeline {
                     git config user.name "Paybridge Bot"
                     
                     git add ${DEPLOYMENT_FILE}
-                    
-                    git commit -m "ci(deploy): update paybridge-web to ${IMAGE_TAG} [build #${BUILD_NUMBER}] [skip ci]"
+                    git commit -m "ci(deploy): bump paybridge-web image to ${IMAGE_TAG} [build #${BUILD_NUMBER}] [skip ci]"
                     
                     # Push back to the detected branch
                     git push origin \$CURRENT_BRANCH
