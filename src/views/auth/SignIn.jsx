@@ -38,7 +38,7 @@ export default function SignIn() {
 
       localStorage.setItem("access_token", token);
 
-      navigate("/admin/dashboard", { replace: true });
+      navigate("/auth/otp", { replace: true, state: { email: data.email } });
  
 
     } catch (error) {
