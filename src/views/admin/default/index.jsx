@@ -25,7 +25,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchBalance = async () => {
       try {
-        const res = await getBalance("b2a9a16d-9cc7-49c0-abf0-16b69348c095");
+        const res = await getBalance();
         setBalance(res.balance ?? 0);
       } catch (error) {
         console.error("Failed to fetch balance", error);

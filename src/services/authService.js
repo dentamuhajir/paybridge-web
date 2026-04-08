@@ -42,6 +42,11 @@ export const getUserEmail = () => {
   return payload?.email || payload?.username || payload?.sub || null;
 };
 
+export const getUserId = () => {
+  const payload = getTokenPayload();
+  return payload?.user_id || payload?.id || payload?.sub || null;
+};
+
 export const logout = () => {
   // Remove tokens
   localStorage.removeItem("access_token");
