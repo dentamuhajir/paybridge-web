@@ -12,14 +12,20 @@ import {
 } from "react-icons/io";
 
 import { useNavigate } from "react-router-dom";
-import { logout } from "services/authService";
+import { logout, getUserEmail } from "services/authService";
 
 import avatar from "assets/img/avatars/avatar4.png";
 
 const Navbar = (props) => {
   const { onOpenSidenav, brandText } = props;
   const [darkmode, setDarkmode] = React.useState(false);
+  const [userEmail, setUserEmail] = React.useState("");
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    const email = getUserEmail();
+    if (email) setUserEmail(email);
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -200,7 +206,7 @@ const Navbar = (props) => {
               <div className="p-4">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-bold text-navy-700 dark:text-white">
-                    👋 Hey, Adela
+                    {userEmail || "User"}
                   </p>{" "}
                 </div>
               </div>

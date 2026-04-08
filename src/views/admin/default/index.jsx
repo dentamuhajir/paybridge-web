@@ -16,23 +16,17 @@ import TaskCard from "views/admin/default/components/TaskCard";
 import tableDataCheck from "./variables/tableDataCheck.json";
 import tableDataComplex from "./variables/tableDataComplex.json";
 import { useEffect, useState } from "react";
-import { getBalance } from "services/walletService";
+import { getBalance } from "services/transactionService";
 
 
 const Dashboard = () => {
-  const [wallet, setWallet] = useState({
-    balance: 0,
-    currency: "",
-  });
+  const [balance, setBalance] = useState(0);
 
   useEffect(() => {
     const fetchBalance = async () => {
       try {
         const res = await getBalance();
-        setWallet({
-          balance: res.data.balance,
-          currency: res.data.currency,
-        });
+        setBalance(res.balance ?? 0);
       } catch (error) {
         console.error("Failed to fetch balance", error);
       }
@@ -64,7 +58,7 @@ const Dashboard = () => {
         <Widget
           icon={<MdDashboard className="h-6 w-6" />}
           title={"Your Balance"}
-          subtitle={`${wallet.currency} ${wallet.balance.toLocaleString()}`}
+          subtitle={`${balance.toLocaleString()}`}
         />
         <Widget
           icon={<MdBarChart className="h-7 w-7" />}
