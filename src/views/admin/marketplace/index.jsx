@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Banner from "./components/Banner";
 import NFt2 from "assets/img/nfts/Nft2.png";
 import NFt4 from "assets/img/nfts/Nft4.png";
@@ -13,8 +14,32 @@ import { tableColumnsTopCreators } from "views/admin/marketplace/variables/table
 import HistoryCard from "./components/HistoryCard";
 import TopCreatorTable from "./components/TableTopCreators";
 import NftCard from "components/card/NftCard";
+import api from "lib/axios";
 
 const Marketplace = () => {
+  const [loanProducts, setLoanProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchLoanProducts();
+  }, []);
+
+  const fetchLoanProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get("/loan-products");
+      if (response.data.success && response.data.data) {
+        setLoanProducts(response.data.data);
+      }
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      console.error("Error fetching loan products:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="mt-3 grid h-full grid-cols-1 gap-5 xl:grid-cols-2 2xl:grid-cols-3">
       <div className="col-span-1 h-fit w-full xl:col-span-1 2xl:col-span-2">
@@ -64,61 +89,47 @@ const Marketplace = () => {
 
         {/* Product Loan Cards */}
         <div className="z-20 grid grid-cols-1 gap-5 md:grid-cols-3">
-          <NftCard
-            bidders={[avatar1, avatar2, avatar3]}
-            title="Electronics Financing"
-            author="Up to 24 Months Tenor"
-            price="Starting from 1.2% / month"
-            image={NFt3}
-          />
-          <NftCard
-            bidders={[avatar1, avatar2, avatar3]}
-            title="Motorcycle Loan"
-            author="Flexible Down Payment"
-            price="Interest from 0.9% / month"
-            image={NFt2}
-          />
-          <NftCard
-            bidders={[avatar1, avatar2, avatar3]}
-            title="Home Appliance Installment"
-            author="Quick Approval Process"
-            price="Up to Rp 25,000,000 Limit"
-            image={NFt4}
-          />
+          {loading ? (
+            <div className="col-span-1 md:col-span-3 py-8 text-center">
+              <p className="text-gray-500 dark:text-gray-400">Loading loan products...</p>
+            </div>
+          ) : error ? (
+            <div className="col-span-1 md:col-span-3 py-8 text-center">
+              <p className="text-red-500 dark:text-red-400">Error loading loan products: {error}</p>
+            </div>
+          ) : loanProducts.length > 0 ? (
+            loanProducts.map((product) => {
+              const lowestRate = product.tenors.length > 0 
+                ? Math.min(...product.tenors.map(t => parseFloat(t.interestRate)))
+                : 0;
+              const highestTenor = product.tenors.length > 0
+                ? Math.max(...product.tenors.map(t => t.tenorMonths))
+                : 0;
+              
+              const imageOptions = [NFt2, NFt3, NFt4, NFt5, NFt6];
+              const randomImage = imageOptions[Math.floor(Math.random() * imageOptions.length)];
+
+              return (
+                <NftCard
+                  key={product.id}
+                  bidders={[avatar1, avatar2, avatar3]}
+                  title={product.name}
+                  author={product.description}
+                  price={`From ${lowestRate}% / month (${highestTenor} months)`}
+                  image={randomImage}
+                />
+              );
+            })
+          ) : (
+            <div className="col-span-1 md:col-span-3 py-8 text-center">
+              <p className="text-gray-500 dark:text-gray-400">No loan products available</p>
+            </div>
+          )}
         </div>
 
 
         {/* Recenlty Added setion */}
-        <div className="mb-5 mt-5 flex items-center justify-between px-[26px]">
-          <h4 className="text-2xl font-bold text-navy-700 dark:text-white">
-            Recently Added
-          </h4>
-        </div>
-
-        {/* Recently Add NFTs */}
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
-          <NftCard
-            bidders={[avatar1, avatar2, avatar3]}
-            title="Abstract Colors"
-            author="Esthera Jackson"
-            price="0.91"
-            image={NFt4}
-          />
-          <NftCard
-            bidders={[avatar1, avatar2, avatar3]}
-            title="ETH AI Brain"
-            author="Nick Wilson"
-            price="0.7"
-            image={NFt5}
-          />
-          <NftCard
-            bidders={[avatar1, avatar2, avatar3]}
-            title="Mesh Gradients"
-            author="Will Smith"
-            price="2.91"
-            image={NFt6}
-          />
-        </div>
+        {/* Section removed - using API-driven loan products instead */}
       </div>
 
       {/* right side section */}
