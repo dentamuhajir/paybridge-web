@@ -10,3 +10,18 @@ export const getBalance = async (accountId) => {
   const res = await api.get(`/account/balance/${userId}`);
   return res.data.data;
 };
+
+export const applyLoanApplication = async (applicationData) => {
+  const userId = getUserId();
+  if (!userId) {
+    throw new Error("User ID not found");
+  }
+
+  const payload = {
+    userId,
+    ...applicationData,
+  };
+
+  const res = await api.post("/loan-applications", payload);
+  return res.data;
+};

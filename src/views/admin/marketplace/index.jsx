@@ -14,12 +14,15 @@ import { tableColumnsTopCreators } from "views/admin/marketplace/variables/table
 import HistoryCard from "./components/HistoryCard";
 import TopCreatorTable from "./components/TableTopCreators";
 import NftCard from "components/card/NftCard";
+import LoanApplicationModal from "components/modal/LoanApplicationModal";
 import api from "lib/axios";
 
 const Marketplace = () => {
   const [loanProducts, setLoanProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     fetchLoanProducts();
@@ -39,6 +42,16 @@ const Marketplace = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePlaceBid = (product) => {
+    setSelectedProduct(product);
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedProduct(null);
   };
   return (
     <div className="mt-3 grid h-full grid-cols-1 gap-5 xl:grid-cols-2 2xl:grid-cols-3">
@@ -117,6 +130,7 @@ const Marketplace = () => {
                   author={product.description}
                   price={`From ${lowestRate}% / month (${highestTenor} months)`}
                   image={randomImage}
+                  onPlaceBid={() => handlePlaceBid(product)}
                 />
               );
             })
@@ -142,6 +156,11 @@ const Marketplace = () => {
         />
         <HistoryCard />
       </div>
+      <LoanApplicationModal
+        isOpen={modalOpen}
+        onClose={handleCloseModal}
+        product={selectedProduct}
+      />
     </div>
   );
 };
