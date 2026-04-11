@@ -19,6 +19,7 @@ import {
   MdPerson,
   MdLock,
 } from "react-icons/md";
+import ManageLoan from "views/admin/loans";
 
 
 const routes = [
@@ -36,6 +37,13 @@ const routes = [
     icon: <MdOutlineShoppingCart className="h-6 w-6" />,
     component: <NFTMarketplace />,
     secondary: true,
+  },
+  {
+    name: "Manage Loans",
+    layout: "/admin",
+    icon: <MdBarChart className="h-6 w-6" />,
+    path: "manage-loans",
+    component: <ManageLoan />,
   },
   {
     name: "Data Tables",
